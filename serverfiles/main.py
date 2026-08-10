@@ -7,13 +7,18 @@ import inferencepipeline as ip
 
 NUM_ITER = 100
 
+def run_stream(data_q: torch.multiprocessing.Queue):
+        """
+            Initializes DataReciever class and starts streaming audio data from Raspberry Pi.
+        """
+        stream = dr()
+        stream.stream(data_q)
+
 def main(bundle):
 
     print(f"torch.__version__: {torch.__version__}")
     print(f"torchaudio.__version__: {ta.__version__}")
 
-    # Create a DataReceiver Instance
-    stream = dr()
 
     print("Building the Pipeline...")
     pipeline = ip.Pipeline(bundle)
@@ -36,7 +41,7 @@ def main(bundle):
     #Creates Process to receive audio data from Raspberry Pi and put it in a multiprocessing queue
     ctx = mp.get_context("spawn")
     data_q = ctx.Queue()
-    stream_process = ctx.Process(target=stream.stream, args=(data_q,))
+    stream_process = ctx.Process(target=run_stream, args=(data_q,))
     stream_process.start()
 
     #Creates process to segement the audio data from the queue and put it in another queue for inference
