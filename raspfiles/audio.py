@@ -3,7 +3,7 @@ import torch
 from torchaudio.functional import resample
 from copyreg import pickle
 
-sd.default.device = 0
+sd.default.device = 4
 sd.default.samplerate = 44100
 sd.default.channels = 1
 sd.default.blocksize = 16448
@@ -21,5 +21,5 @@ def stream(q: torch.multiprocessing.Queue):
 
     with sd.InputStream(callback=callback):
         print("Recording... Press Ctrl+C to stop.")
-        sd.sleep(5000)  # Record for 10 seconds
+        sd.sleep(500000)  # Record for 10 seconds
     

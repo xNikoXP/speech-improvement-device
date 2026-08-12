@@ -1,12 +1,15 @@
 import pickle
 import socket
+import struct
 
 class Client:
 
-    def __init__(self, host="localhost", port=8086):
+    def __init__(self, host="localhost", port=8080):
         self.host = socket.gethostbyname(host)
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    
 
     def connect(self):
         """
@@ -18,8 +21,13 @@ class Client:
         """
         Serializes and sends data through server
         """
-        serialized_data = pickle.dumps(data)
-        self.sock.sendall(serialized_data)
+
+        print(data)
+        serialized_data = pickle.dumps(data)    #Serializes the data
+
+        length = struct.pack('>I', len(serialized_data))   # Length of the serialised data
+
+        self.sock.sendall(length + serialized_data) # sends the serialized data and its length to the server
         print("Sent data to server.")
 
     def receive(self):
@@ -28,7 +36,7 @@ class Client:
         """
         data = self.sock.recv(4096)
         if data:
-            return pickle.loads(data)
+            return pickle.loads(struct.pack('>I',len(data)) + data)
         return None
 
     def close(self):
