@@ -34,7 +34,7 @@ class DataReceiver:
             packet = self.conn.recv(size - len(data))    
             if not packet:
                 return None
-        data += packet;
+            data += packet;
 
         return data
 
@@ -48,15 +48,13 @@ class DataReceiver:
             header = self.__recv_full(4) # Recieves the first 4 bytes which has the message length
             if not header:
                 print("No header")
-                break;
+                break
             length = struct.unpack('>I', header)[0]
-            print(length)
 
             data = self.__recv_full(length)  # Gets the full complete data
             if not data:
                 print("No data")
                 break
             data = pickle.loads(data)  # Deserializes data
-            print("data: ", data)
             q.put(data)
             

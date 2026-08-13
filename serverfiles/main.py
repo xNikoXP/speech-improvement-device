@@ -4,6 +4,7 @@ import functionalaudio as fn
 import torch
 import torchaudio as ta
 import inferencepipeline as ip
+import time
 
 NUM_ITER = 100
 
@@ -33,7 +34,7 @@ def main(bundle):
     def infer():
         for _ in range(NUM_ITER):
             chunk = segment_q.get()
-            segment = cacher(chunk)
+            segment = cacher(chunk[:, 0])
             transcript = pipeline.infer(segment)
             print(transcript)
 
@@ -44,6 +45,9 @@ def main(bundle):
     stream_process = ctx.Process(target=run_stream, args=(data_q,))
     stream_process.start()
 
+    while data_q.empty():   # Waits until client is connected to segment audio data
+         time.sleep(0.05)
+
     #Creates process to segement the audio data from the queue and put it in another queue for inference
     segment_q = ctx.Queue()
     segment_separator_process = ctx.Process(target=fn.seperate_segments, args=(data_q, segment_length, segment_q))
@@ -52,6 +56,8 @@ def main(bundle):
     infer()
     stream_process.join()
     segment_separator_process.join()
+
+
 
 if __name__ == "__main__":
     bundle = ta.pipelines.EMFORMER_RNNT_BASE_LIBRISPEECH

@@ -21,8 +21,6 @@ class Client:
         """
         Serializes and sends data through server
         """
-
-        print(data)
         serialized_data = pickle.dumps(data)    #Serializes the data
 
         length = struct.pack('>I', len(serialized_data))   # Length of the serialised data
