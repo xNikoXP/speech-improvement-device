@@ -2,6 +2,7 @@ import sounddevice as sd
 import torch
 from torchaudio.functional import resample
 from copyreg import pickle
+import numpy as np
 
 sd.default.device = 4
 sd.default.samplerate = 44100
@@ -16,10 +17,9 @@ def stream(q: torch.multiprocessing.Queue):
     def callback(indata, frames, time, status):
         if status:
             print(status)
-        data = torch.from_numpy(indata.copy())
-        q.put(data)
+        q.put(indata)
 
-    with sd.InputStream(callback=callback):
+    with sd.InputStream(callback=callback, dtype='float32'):
         print("Recording... Press Ctrl+C to stop.")
         sd.sleep(500000)  # Record for 10 seconds
     

@@ -1,48 +1,42 @@
 import socket
-import torch
-import functionalaudio as fn
 import pickle
 import struct
 
+import torch
+
+import audiofunctions as fn
 
 
 class DataReceiver:
 
+
+    """
+    Methods for communicating with the taser modules 
+    """
+
     def __init__(self):
-        """
-            Initializes DataReciever class and establishes socket connection for Raspberry Pi
-        """
+        "Establish connection with raspberry pi"
         self.host = socket.gethostbyname("localhost")
-        self.port = 8080
+        self.port = 8086
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-
         self.sock.bind((self.host, self.port))
         self.sock.listen(1)
         print(f"Listening on {self.host}:{self.port}...")
         self.conn, self.addr = self.sock.accept()
         print(f"Connection from {self.addr} established.")
 
-
     def __recv_full(self, size):
-        """
-        Receieves data from client and ensures that message is kept intact
-        """
+        """Recieves data from raspberry pi and returns the full intact data"""
         data = b''
-
         while len(data) < size: #Checks if data is full and requests missing data if it is not
             packet = self.conn.recv(size - len(data))    
             if not packet:
                 return None
             data += packet;
-
         return data
 
-        
     def stream(self, q: torch.multiprocessing.Queue):
-        """
-            Receives audio data from Raspberry Pi and puts it in a multiprocessing queue.
-        """
+        """Recieves data from raspberry pi and puts data into a queue"""
         print("Streaming...")
         while True:
             header = self.__recv_full(4) # Recieves the first 4 bytes which has the message length
