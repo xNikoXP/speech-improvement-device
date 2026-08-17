@@ -1,3 +1,5 @@
+from time import sleep
+
 import torch
 import torch.multiprocessing as mp
 import torchaudio as ta
@@ -16,20 +18,32 @@ def getAudio(q: torch.multiprocessing.Queue):
     reciever.stream(q)
 
 
-def getTranscript(q, bundle):
+def getTranscript(input: torch.multiprocessing.Queue, bundle):
     "Sends audio data to model and returns written transcript"
     model = Wav2Vec2(bundle)
     while True:
-        yield Wav2Vec2.decodeAudio(q)
+        word = torch.from_numpy(input.get()).t()
+        print(word.shape)
+        print(model.decodeAudio(word))
 
 
 def main(bundle):
     "Starts the program"
+    print("Starting...")
     ctx = mp.get_context("spawn")
     stream_q = ctx.Queue()
-    stream_process = ctx.Process(target=getAudio, args=(stream_q,))
 
-    decode_process = ctx.Process(target=getTranscript, args=(stream_q, bundle))
+    stream_process = ctx.Process(target=getAudio, args=(stream_q,))
+    stream_process.start()
+    transcript_process = ctx.Process(target=getTranscript, args=(stream_q, bundle))
+    
+    while stream_q.empty():
+        sleep(0.05)
+
+    transcript_process.start()
+    stream_process.join()
+    transcript_process.join()
+
 
 
 if __name__ == "__main__":

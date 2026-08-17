@@ -3,14 +3,22 @@ import torchaudio as ta
 
 
 class Wav2Vec2:
+    """Methods required for Wav2Vec2 ASR
 
+    Takes audio tensors and processes them into a transcript
+
+    Attributes:
+        device: The decoding hardware
+        model: Wav2Vec2 model
+        decoder: Method used to turn audio tensors into a readable transcript
+    """
 
     def __init__(self, bundle):
         """Initiliazes Wav2Vec2 ASR model"""
         print("Torch Version: ", torch.__version__)
         print("TorchAudio Version: ", ta.__version__)
         torch.manual_seed(0)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         print("Device: ", self.device)
         print("Sample Rate: ", bundle.sample_rate)
         print("Labels: ", bundle.get_labels())
@@ -19,7 +27,15 @@ class Wav2Vec2:
         self.decoder = Wav2Vec2.GreedyCTCDecoder(labels=bundle.get_labels())
 
     def decodeAudio(self, data: torch.Tensor):
-        """Decodes audio and returns transcript"""
+        """Decodes audio and returns transcript
+        
+        Args:
+            data: audio tensor
+        
+        Returns:
+            An iterable string of the models guess on the words spoken in
+            the audio tensor.
+        """
         data = ta.functional.resample(data, 44100, 16000)
         with torch.inference_mode():
              emission, _ = self.model(data)
@@ -27,7 +43,7 @@ class Wav2Vec2:
         return transcript
 
 
-    class GreedyCTCDecoder():
+    class GreedyCTCDecoder(torch.nn.Module):
 
             def __init__(self, labels, blank=0):
                 """Initializes GreedyCTC Decoder"""
