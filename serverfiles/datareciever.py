@@ -4,8 +4,6 @@ import struct
 
 import torch
 
-import audiofunctions as fn
-
 
 class DataReceiver:
     """Methods for communicating with the taser modules 
